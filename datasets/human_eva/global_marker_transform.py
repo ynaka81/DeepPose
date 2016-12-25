@@ -36,11 +36,11 @@ class GlobalMarkerTransform(object):
         diff = self.lelbow[0:3, 3] - (self.lshoulder[0:3]*np.matrix([0, 0, -length[10], 1]).T)
         self.lshoulder = self.lshoulder*quat.Quaternion(axis=[0, 1, 0], radians=-np.arctan2(conic_param[5, 0]/2, length[10])).transformation_matrix
         self.lelbow[0:3, 3] = self.lshoulder[0:3]*np.matrix([0, 0, -length[10], 1]).T + diff
-        self.lelbow = self.lelbow*quat.Quaternion(axis=[0, 1, 0], radians=-np.arctan2(conic_param[5, 0]/2, length[10])).transformation_matrix
+        self.lelbow = self.lelbow*quat.Quaternion(axis=[0, 1, 0], radians=np.arctan2(conic_param[5, 0]/2, length[10])).transformation_matrix
         diff = self.relbow[0:3, 3] - (self.rshoulder[0:3]*np.matrix([0, 0, -length[14], 1]).T)
         self.rshoulder = self.rshoulder*quat.Quaternion(axis=[0, 1, 0], radians=-np.arctan2(conic_param[7, 0]/2, length[14])).transformation_matrix
         self.relbow[0:3, 3] = self.rshoulder[0:3]*np.matrix([0, 0, -length[14], 1]).T + diff
-        self.relbow = self.relbow*quat.Quaternion(axis=[0, 1, 0], radians=-np.arctan2(conic_param[7, 0]/2, length[14])).transformation_matrix
+        self.relbow = self.relbow*quat.Quaternion(axis=[0, 1, 0], radians=np.arctan2(conic_param[7, 0]/2, length[14])).transformation_matrix
     ## compute global transform
     # @param self The object pointer
     # @param mocap The motion capture data
