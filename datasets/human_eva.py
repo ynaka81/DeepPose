@@ -99,8 +99,11 @@ class HumanEva(dataset.Dataset):
             self._P_[index].append(np.matrix(np.zeros((3, 2)))) # TODO:implement P+
             self._x_2d[index].append(x_2d_t)
             self._x_3d[index].append(x_3d_t)
+            # increment image frame
+            image_frame += 1
             # TODO:for test, remove later
-            break
+            if image_frame > 100:
+                break
             # TODO:to here
         # release memory
         video.release()

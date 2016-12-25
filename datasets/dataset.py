@@ -37,7 +37,8 @@ class Dataset(object):
         # output the file
         for images_i, P_i, x_2d_t, x_3d_t  in zip(images, P_, x_2d, x_3d):
             x_i = np.vstack([np.vstack((x_2d_t[name], x_3d_t[name])) for name in self.JOINTS])
-            output.write(",".join(map(str, [images_i] + list(chain.from_iterable(P_i.tolist())) + list(chain.from_iterable(x_i.tolist())))))
+            output.write(",".join(map(str, [images_i] + list(chain.from_iterable(P_i.tolist())) + list(chain.from_iterable(x_i.tolist())))) + os.linesep)
+        output.write(os.linesep)
     ## save the train/test dataset
     # @param self The object pointer
     def _saveDataset(self):
