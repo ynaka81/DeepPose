@@ -102,7 +102,7 @@ class HumanEva(dataset.Dataset):
             # substitute to class value
             index = (0 if image_frame < partition else 1)
             self._images[index].append(filename)
-            self._A_inv[index].append(cam_param.A_inv*np.matrix(np.diag([bb.s, bb.s, 1])))
+            self._A_inv[index].append((cam_param.A_inv*np.matrix(np.diag([bb.s, bb.s, 1])))[:, 0:2])
             self._x_2d[index].append(x_2d_t)
             self._x_3d[index].append(x_3d_t)
             # increment image frame

@@ -11,7 +11,8 @@ class TestHumanEva(object):
     ## constructor
     # @param train_file The filename of train file
     # @param result_dirname The directory for the test result
-    def __init__(self, train_file="data/train_data", result_dirname="test_result/HumanEva"):
+    # @param cropping_size The size of cropping for DNN training
+    def __init__(self, train_file="data/train_data", result_dirname="test_result/HumanEva", cropping_size=220):
         for key, val in locals().items():
             setattr(self, key, val)
         try:
@@ -38,8 +39,12 @@ class TestHumanEva(object):
                 x = [int(float(v)) for v in x]
                 x_ = (x[0], x[1])
                 cv2.circle(image, x_, 3, (0, 0, 255), -1)
-                cv2.putText(image, str(j), x_, cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255))
-            cv2.imwrite(os.path.join(self.result_dirname, "{0}.png".format(i)), image)
+                cv2.putText(image, str(j), x_, cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255))
+            # cropping test
+            h, w, _ = image.shape
+            w_, h_ = w - self.cropping_size, h - self.cropping_size
+            for j, u_0 in enumerate(((0, 0), (w_, 0), (0, h_), (w_, h_))):
+                cv2.imwrite(os.path.join(self.result_dirname, "{0}_{1}.png".format(i, j)), image[u_0[0]:u_0[0] + self.cropping_size, u_0[1]:u_0[1] + self.cropping_size])
 
 if __name__ == "__main__":
     TestHumanEva().main()
