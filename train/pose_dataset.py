@@ -10,10 +10,12 @@ class PoseDataset(dataset.DatasetMixin):
     ## constructor
     # @param path The filename of train/test file
     # @param mean The mean image
+    # @param data_augmentation The flag of data augmentation
     # @param cropping_size The size of cropping for DNN training, the default value is (220x220)
-    def __init__(self, path, mean, cropping_size=220):
+    def __init__(self, path, mean, data_augmentation=True, cropping_size=220):
         self.__mean = mean
         self.__cropping_size = cropping_size
+        self.__data_augmentation = data_augmentation
         ## image filename
         self.__images = []
         ## the inverse matrix of scaled camera matrix
@@ -58,9 +60,12 @@ class PoseDataset(dataset.DatasetMixin):
         image = self.__readImage(self.__images[i])
         x_2d = self.__x_2d[i].copy()
         x_3d = self.__x_3d[i].copy()
-        # data augumentation by random cropping
         _, h, w = image.shape
-        top, left = random.randint(0, h - self.__cropping_size), random.randint(0, w - self.__cropping_size)
+        # data augumentation by random cropping
+        if self.__data_augmentation:
+            top, left = random.randint(0, h - self.__cropping_size), random.randint(0, w - self.__cropping_size)
+        else:
+            top, left = (h - self.__cropping_size)/2, (w - self.__cropping_size)/2
         bottom, right = top + self.__cropping_size, left + self.__cropping_size
         image = image[:, top:bottom, left:right]
         # modify 2D/3D pose according to the cropping
@@ -69,12 +74,13 @@ class PoseDataset(dataset.DatasetMixin):
             x_2d[2*j:2*(j + 1)] -= du
             x_3d[3*j:3*(j + 1)] -= np.asarray(x_3d[3*j + 2]*np.matrix(du)*self.__A_inv[i].T)[0]
         # data augumentation by random noise
-        C = np.cov(np.reshape(image, (3, -1)))
-        l, e = np.linalg.eig(C)
-        p = np.random.normal(0, 0.1)*np.matrix(e).T*np.sqrt(np.matrix(l)).T
-        for c in range(3):
-            image[i] += p[i]
-        image = np.clip(image, 0, 255)
+        if self.__data_augmentation:
+            C = np.cov(np.reshape(image, (3, -1)))
+            l, e = np.linalg.eig(C)
+            p = np.random.normal(0, 0.1)*np.matrix(e).T*np.sqrt(np.matrix(l)).T
+            for c in range(3):
+                image[i] += p[i]
+            image = np.clip(image, 0, 255)
         # mean zeroing
         image -= self.__mean[:, top:bottom, left:right]
         # scale to [-1, 1]
