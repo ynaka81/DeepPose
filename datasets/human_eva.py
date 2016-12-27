@@ -28,9 +28,9 @@ class HumanEva(dataset.Dataset):
     CAMERAS = ("C1", "C2", "C3")
     ACTIONS = ("Box", "Gestures", "Jog", "ThrowCatch", "Walking")
     TRIALS = (1,)
-    PARTITION = {"S1":{"Walking":590, "Jog":367, "ThrowCatch": 473, "Gestures": 395, "Box": 385},
-                 "S2":{"Walking":438, "Jog":398, "ThrowCatch": 550, "Gestures": 500, "Box": 382},
-                 "S3":{"Walking":448, "Jog":401, "ThrowCatch": 493, "Gestures": 533, "Box": 512}}
+    PARTITION = {"S1":{"Walking": (590, 1180), "Jog": (367, 735), "ThrowCatch": (473, 946), "Gestures": (395, 790), "Box": (385, 770)},
+                 "S2":{"Walking": (438, 877), "Jog": (398, 796), "ThrowCatch": (550, 1101), "Gestures": (500, 1000), "Box": (382, 765)},
+                 "S3":{"Walking": (448, 896), "Jog": (401, 803), "ThrowCatch": (493, 987), "Gestures": (533, 1067), "Box": (512, 1024)}}
     START_FRAME = 6
     # TODO:extract using joint
     MAPPING = {"torsoProximal": "torsoProximal",
@@ -64,7 +64,7 @@ class HumanEva(dataset.Dataset):
     # @param self The object pointer
     # @param avi_file The filename of video data
     # @param png_dir The directory name of output image data
-    # @param partition The partition between train data and test data
+    # @param partition The partition between test data, train data and video end
     # @param cam_param The camera parameter
     # @param mocap The motion capture data
     # @param sync_param The synchronization parameter
@@ -81,6 +81,9 @@ class HumanEva(dataset.Dataset):
         while(video.isOpened()):
             # get current image frame
             ret, frame = video.read()
+            if not ret:
+                image_frame += 1
+                continue
             # calculate mocap frame
             mocap_frame = sync_param.mc_st + (image_frame - sync_param.im_st)*sync_param.mc_sc
             if (not 1 <= mocap_frame <= mocap.marker.shape[0]) or not mocap.isValid(mocap_frame):
@@ -100,17 +103,15 @@ class HumanEva(dataset.Dataset):
             filename = os.path.join(png_dir, "{0}.png".format(image_frame))
             cv2.imwrite(filename, bb.image)
             # substitute to class value
-            index = (0 if image_frame < partition else 1)
+            index = (1 if image_frame < partition[0] else 0)
             self._images[index].append(filename)
             self._A_inv[index].append((cam_param.A_inv*np.matrix(np.diag([bb.s, bb.s, 1])))[:, 0:2])
             self._x_2d[index].append(x_2d_t)
             self._x_3d[index].append(x_3d_t)
             # increment image frame
             image_frame += 1
-            # TODO:for test, remove later
-            if image_frame > 100:
+            if image_frame > partition[1]:
                 break
-            # TODO:to here
         # release memory
         video.release()
     ## main method of generating the HumanEva dataset
