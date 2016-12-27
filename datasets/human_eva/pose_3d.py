@@ -31,3 +31,12 @@ class Pose3D(pose.Pose):
         self._data["lowerRArmDistal"] = Tm.relbow[0:3]*np.matrix([0, 0, -length[15], 1]).T
         self._data["headProximal"] = Tm.head[0:3, 3]
         self._data["headDistal"] = Tm.head[0:3]*np.matrix([0, 0, length[17], 1]).T
+    ## modify the 3D pose according to bounding box and change coordinate to camera coordinate
+    # @param self The object pointer
+    # @param bb The bounding box of human
+    # @param cam_param The camera parameter
+    def modify(self, bb, cam_param):
+        S = np.matrix(np.diag([bb.s, bb.s, 1]))
+        for k in self._data.keys():
+            x_c = cam_param.Rc*self._data[k] + cam_param.t_c
+            self._data[k] = cam_param.A_inv*S*cam_param.A*(x_c - x_c[2, 0]*cam_param.A_inv*bb.u_0)

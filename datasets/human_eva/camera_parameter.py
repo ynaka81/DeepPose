@@ -22,6 +22,8 @@ class CameraParameter(object):
         self.A = np.matrix(np.identity(3))
         self.A[0:2, 0:2] = np.diag(fc)
         self.A[0:2, 2] = cc
+        ## inverse camera matrix
+        self.A_inv = np.linalg.inv(self.A)
         ## skew coefficient (1)
         self.alpha_c = 0
         self.alpha_c = float(f.readline())
@@ -30,14 +32,14 @@ class CameraParameter(object):
         for i in range(5):
             self.kc[i] = float(f.readline())
         # extrinsic rotation matrix (3x3)
-        _Rc = np.identity(3)
+        self.Rc = np.identity(3)
         for i in range(9):
-            _Rc[i/3, i%3] = float(f.readline())
+            self.Rc[i/3, i%3] = float(f.readline())
         ## extrinsic rotation vector (3x1)
-        self.Rc = cv2.Rodrigues(_Rc)[0]
+        self.r_c = cv2.Rodrigues(self.Rc)[0]
         ## extrinsic translation vector (3x1)
-        self.Tc = np.zeros((3, 1))
+        self.t_c = np.zeros((3, 1))
         for i in range(3):
-            self.Tc[i] = float(f.readline())
+            self.t_c[i] = float(f.readline())
         # release memory
         f.close()

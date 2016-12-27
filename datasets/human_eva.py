@@ -13,6 +13,7 @@ from human_eva.limb_length import LimbLength
 from human_eva.global_marker_transform import GlobalMarkerTransform
 from human_eva.pose_3d import Pose3D
 from human_eva.pose_2d import Pose2D
+from human_eva.bounding_box import BoundingBox
 
 # TODO:for test, remove later
 import sys
@@ -85,18 +86,23 @@ class HumanEva(dataset.Dataset):
             if (not 1 <= mocap_frame <= mocap.marker.shape[0]) or not mocap.isValid(mocap_frame):
                 image_frame += 1
                 continue
-            # save image
-            filename = os.path.join(png_dir, "{0}.png".format(image_frame))
-            cv2.imwrite(filename, frame)
             # compute 3D pose
             length = LimbLength(mocap, mocap_frame)
             Tm = GlobalMarkerTransform(mocap, mocap_frame, conic_param, length)
             x_3d_t = Pose3D(Tm, length)
             x_2d_t = Pose2D(x_3d_t, cam_param)
+            # calculate bounding box
+            bb = BoundingBox(frame, x_2d_t)
+            # modify 2D/3D pose accoring to the bounding box
+            x_3d_t.modify(bb, cam_param)
+            x_2d_t.modify(bb)
+            # save image
+            filename = os.path.join(png_dir, "{0}.png".format(image_frame))
+            cv2.imwrite(filename, bb.image)
             # substitute to class value
             index = (0 if image_frame < partition else 1)
             self._images[index].append(filename)
-            self._P_[index].append(np.matrix(np.zeros((3, 2)))) # TODO:implement P+
+            self._A_inv[index].append(cam_param.A_inv*np.matrix(np.diag([bb.s, bb.s, 1])))
             self._x_2d[index].append(x_2d_t)
             self._x_3d[index].append(x_3d_t)
             # increment image frame
