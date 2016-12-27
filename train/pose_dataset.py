@@ -79,7 +79,7 @@ class PoseDataset(dataset.DatasetMixin):
             l, e = np.linalg.eig(C)
             p = np.random.normal(0, 0.1)*np.matrix(e).T*np.sqrt(np.matrix(l)).T
             for c in range(3):
-                image[i] += p[i]
+                image[c] += p[c]
             image = np.clip(image, 0, 255)
         # mean zeroing
         image -= self.__mean[:, top:bottom, left:right]

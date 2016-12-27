@@ -30,7 +30,7 @@ class TestPoseDataset(unittest.TestCase):
     # @param self The object pointer
     def testDatasetLength(self):
         for dataset in self.__dataset:
-            self.assertEqual(len(dataset), 2)
+            self.assertEqual(len(dataset), 4)
     ## test PoseDataset.get_example
     # @param self The object pointer
     def testGetExample(self):
