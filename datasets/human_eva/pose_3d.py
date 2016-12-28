@@ -38,5 +38,6 @@ class Pose3D(pose.Pose):
     def modify(self, bb, cam_param):
         S = np.matrix(np.diag([bb.s, bb.s, 1]))
         for k in self._data.keys():
+            # modify 3D pose with ignoring nonlinear factor
             x_c = cam_param.Rc*self._data[k] + cam_param.t_c
             self._data[k] = cam_param.A_inv*S*cam_param.A*(x_c - x_c[2, 0]*cam_param.A_inv*bb.u_0)

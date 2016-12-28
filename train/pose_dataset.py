@@ -72,6 +72,7 @@ class PoseDataset(dataset.DatasetMixin):
         for j in range(len(self.__x_2d[i])/2):
             du = np.array([left, top])
             x_2d[2*j:2*(j + 1)] -= du
+            # ignore nonlinear factor
             x_3d[3*j:3*(j + 1)] -= np.asarray(x_3d[3*j + 2]*np.matrix(du)*self.__A_inv[i].T)[0]
         # data augumentation by random noise
         if self.__data_augmentation:
