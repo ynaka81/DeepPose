@@ -18,6 +18,8 @@ class PoseDataset(dataset.DatasetMixin):
         self.__data_augmentation = data_augmentation
         ## image filename
         self.__images = []
+        ## the camera matrix
+        self.__A = []
         ## the inverse matrix of scaled camera matrix
         self.__A_inv = []
         ## hstack of 2D pose (x0.T, x1.T, ...)
@@ -29,14 +31,15 @@ class PoseDataset(dataset.DatasetMixin):
         for line in open(path):
             lines.append(line[:-1])
         lines = lines[:-1]
-        offset = 10
+        offset = 1
         for line in lines:
             s = line.split(",")
             self.__images.append(s[0])
             s_f = map(np.float32, s[offset:])
-            self.__A_inv.append(np.matrix([[s_f[0], s_f[1]], [s_f[2], s_f[3]], [s_f[4], s_f[5]]]))
-            self.__x_2d.append(np.hstack(zip(s_f[6::5], s_f[7::5])))
-            self.__x_3d.append(np.hstack(zip(s_f[8::5], s_f[9::5], s_f[10::5])))
+            self.__A.append(np.array([[s_f[0], s_f[1], s_f[2]], [s_f[3], s_f[4], s_f[5]], [s_f[6], s_f[7], s_f[8]]]))
+            self.__A_inv.append(np.matrix([[s_f[9], s_f[10]], [s_f[11], s_f[12]], [s_f[13], s_f[14]]]))
+            self.__x_2d.append(np.hstack(zip(s_f[15::5], s_f[16::5])))
+            self.__x_3d.append(np.hstack(zip(s_f[17::5], s_f[18::5], s_f[19::5])))
     ## read image as numpy array
     # @param self The object pointer
     # @param path The path to image file
@@ -56,9 +59,10 @@ class PoseDataset(dataset.DatasetMixin):
     ## get i-th example
     # @param self The object pointer
     # @param i The example index
-    # @param i-th example
+    # @param i-th example: crop_image(220x220), A(caution:numpy.array, not numpy.matrix), x_2d, x_3d
     def get_example(self, i):
         image = self.__readImage(self.__images[i])
+        A = self.__A[i]
         x_2d = self.__x_2d[i].copy()
         x_3d = self.__x_3d[i].copy()
         _, h, w = image.shape
@@ -87,4 +91,4 @@ class PoseDataset(dataset.DatasetMixin):
         image -= self.__mean[:, top:bottom, left:right]
         # scale to [-1, 1]
         image /= 255.
-        return image, x_2d, x_3d
+        return image, A, x_2d, x_3d

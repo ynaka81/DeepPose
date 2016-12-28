@@ -24,10 +24,11 @@ class StubNet(chainer.Chain):
     ## calculate loss function
     # @param self The object pointer
     # @param image The input image
+    # @param A The camera matrix
     # @param x_2d The ground truth 2D joint positions
     # @param x_3d The ground truth 3D joint positions
     # @return loss
-    def __call__(self, image, x_2d, x_3d):
+    def __call__(self, image, A, x_2d, x_3d):
         y = self.predict(image)
         loss = chainer.functions.mean_squared_error(y, x_3d)
         chainer.report({"loss": loss}, self)

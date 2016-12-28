@@ -39,7 +39,7 @@ class TestPoseDataset(unittest.TestCase):
             for i in range(N):
                 # repeat 10 times because get_example(i) function has randomness
                 for j in range(10):
-                    image, x_2d, x_3d = dataset.get_example(i)
+                    image, A, x_2d, x_3d = dataset.get_example(i)
                     # quantitative test for image and corresponding 2D/3D pose
                     self.assertEqual(image.shape, (3, self.__cropping_size, self.__cropping_size))
                     self.assertTrue((-1. < image).all())
