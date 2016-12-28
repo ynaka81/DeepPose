@@ -105,6 +105,7 @@ class HumanEva(dataset.Dataset):
             # substitute to class value
             index = (1 if image_frame < partition[0] else 0)
             self._images[index].append(filename)
+            self._A[index].append(cam_param.A)
             self._A_inv[index].append((cam_param.A_inv*np.matrix(np.diag([bb.s, bb.s, 1])))[:, 0:2])
             self._x_2d[index].append(x_2d_t)
             self._x_3d[index].append(x_3d_t)

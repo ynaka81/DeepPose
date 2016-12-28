@@ -24,15 +24,16 @@ class PoseDataset(dataset.DatasetMixin):
         self.__x_2d = []
         ## hstack of 3D pose (x0.T, x1.T, ...)
         self.__x_3d = []
-        # read the file
+        # read the file (format:image(1), A(9), A_inv(6), [x_2d(2), x_3d(3)] x n_joints)
         lines = []
         for line in open(path):
             lines.append(line[:-1])
         lines = lines[:-1]
+        offset = 10
         for line in lines:
             s = line.split(",")
             self.__images.append(s[0])
-            s_f = map(np.float32, s[1:])
+            s_f = map(np.float32, s[offset:])
             self.__A_inv.append(np.matrix([[s_f[0], s_f[1]], [s_f[2], s_f[3]], [s_f[4], s_f[5]]]))
             self.__x_2d.append(np.hstack(zip(s_f[6::5], s_f[7::5])))
             self.__x_3d.append(np.hstack(zip(s_f[8::5], s_f[9::5], s_f[10::5])))

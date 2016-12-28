@@ -32,7 +32,7 @@ class TestHumanEva(object):
             line = random.choice(lines)
             splited = line.split(",")
             image_filename = splited[0]
-            x_2d = zip(splited[7::5], splited[8::5])
+            x_2d = zip(splited[16::5], splited[17::5])
             # draw image
             image = cv2.imread(image_filename)
             for j, x in enumerate(x_2d):
