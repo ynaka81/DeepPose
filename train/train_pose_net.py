@@ -39,8 +39,9 @@ class TrainPoseNet(object):
         args = self.__args
         # initialize mode to train
         model_name  = os.path.basename(args.model).split(".")[0]
+        model_class = "".join([s.capitalize() for s in model_name.split("_")])
         model = imp.load_source(model_name, args.model)
-        model = getattr(model, "".join([s.capitalize() for s in model_name.split("_")]))
+        model = getattr(model, model_class)
         model = model(args.Nj)
         if args.resume_model:
             chainer.serializers.load_npz(args.resume_model, model)
@@ -62,7 +63,7 @@ class TrainPoseNet(object):
             chainer.serializers.load_npz(args.resume_opt, optimizer)
         # Set up a trainer
         updater = training.StandardUpdater(train_iter, optimizer, device=args.gpu)
-        trainer = training.Trainer(updater, (args.epoch, "epoch"), args.out)
+        trainer = training.Trainer(updater, (args.epoch, "epoch"), os.path.join(args.out, model_class))
         # standard trainer settings
         trainer.extend(extensions.dump_graph("main/loss"))
         val_interval = (1 if args.test else 10), "epoch"
