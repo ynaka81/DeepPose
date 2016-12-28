@@ -32,7 +32,7 @@ class PoseDataset(dataset.DatasetMixin):
         for line in lines:
             s = line.split(",")
             self.__images.append(s[0])
-            s_f = map(float, s[1:])
+            s_f = map(np.float32, s[1:])
             self.__A_inv.append(np.matrix([[s_f[0], s_f[1]], [s_f[2], s_f[3]], [s_f[4], s_f[5]]]))
             self.__x_2d.append(np.hstack(zip(s_f[6::5], s_f[7::5])))
             self.__x_3d.append(np.hstack(zip(s_f[8::5], s_f[9::5], s_f[10::5])))

@@ -1,4 +1,5 @@
 orig_data
 data
 test_result
+result
 *.pyc
