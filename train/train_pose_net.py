@@ -37,7 +37,7 @@ class TrainPoseNet(object):
     # @param self The object pointer
     def main(self):
         args = self.__args
-        # initialize mode to train
+        # initialize model to train
         model_name  = os.path.basename(args.model).split(".")[0]
         model_class = "".join([s.capitalize() for s in model_name.split("_")])
         model = imp.load_source(model_name, args.model)
