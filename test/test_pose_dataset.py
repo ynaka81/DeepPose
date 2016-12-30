@@ -45,12 +45,14 @@ class TestPoseDataset(unittest.TestCase):
                     self.assertTrue((-1. < image).all())
                     self.assertTrue((image < 1.).all())
                     self.assertTrue((0 < x_2d).all())
-                    self.assertTrue((x_2d < self.__cropping_size).all())
+                    self.assertTrue((x_2d < 1.).all())
                     self.assertEqual(x_2d.shape, (2*self.__N,))
                     self.assertEqual(x_3d.shape, (3*self.__N,))
                     # qualitative test for image (scale to 0-255)
                     image_ = Image.fromarray(np.uint8((image.transpose(1, 2, 0) + 1)/2*255))
                     draw = ImageDraw.Draw(image_)
+                    _, _, w = image.shape
+                    x_2d = x_2d*w
                     for k in range(len(x_2d)/2):
                         u, v = x_2d[2*k], x_2d[2*k + 1]
                         r = 2

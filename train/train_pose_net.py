@@ -86,7 +86,7 @@ class TrainPoseNet(object):
 if __name__ == "__main__":
     # arg definition
     parser = argparse.ArgumentParser(description="Learning convnet for estimating 2D/3D pose")
-    parser.add_argument("--model", "-m", type=str, default="models/stub_net.py", help="Model definition file in models dir")
+    parser.add_argument("--model", "-m", type=str, default="models/alex_net.py", help="Model definition file in models dir")
     parser.add_argument("--gpu", "-g", type=int, default=-1, help="GPU ID (negative value indicates CPU")
     parser.add_argument("--epoch", "-e", type=int, default=100, help="Number of epochs to train")
     parser.add_argument("--test", action="store_true", default=False, help="True when you would test something")

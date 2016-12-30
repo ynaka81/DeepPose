@@ -91,4 +91,8 @@ class PoseDataset(dataset.DatasetMixin):
         image -= self.__mean[:, top:bottom, left:right]
         # scale to [-1, 1]
         image /= 255.
+        # scale to [0, 1]
+        x_2d = x_2d/self.__cropping_size
+        # convert milimeter into meter
+        x_3d = x_3d/1000.
         return image, A, x_2d, x_3d

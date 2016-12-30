@@ -81,7 +81,7 @@ class VisualizeMetrics(object):
                         y = estimator_i(image)
                         for m, y_m in enumerate(y):
                             # TODO:calculate relative position error
-                            e = y_m - x_3d[:, 3*m: 3*(m + 1)].T
+                            e = (y_m - x_3d[:, 3*m: 3*(m + 1)].T)*1000.
                             E[l, m] = (e.T*e)[0, 0]
                         # logging
                         sys.stderr.write("calculating... estimators({0}/{1}) dataset({2}/{3}) epoch({4}/{5}) data({6}/{7})\r".format(i, len(estimators), j, len(dataset), k, len(model_file_list), l, len(dataset_j)))
