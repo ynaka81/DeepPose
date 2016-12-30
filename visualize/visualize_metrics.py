@@ -187,7 +187,7 @@ class VisualizeMetrics(object):
 if __name__ == "__main__":
     # arg definition
     parser = argparse.ArgumentParser(description="Visualizing metrics for algorithm evaluation")
-    parser.add_argument("--target", "-t", type=str, default="models/stub_net.py", help="Target models definition file for algorithm evaluation")
+    parser.add_argument("--target", "-t", type=str, default="models/alex_net.py", help="Target models definition file for algorithm evaluation")
     parser.add_argument("--estimator", "-s", type=str, default="estimators/deep_3d_pose.py", help="Target estimators definition file for algorithm evaluation")
     parser.add_argument("--locate", "-l", type=str, default="local", help="Location of model definition file ('local':use local file, 'username@xxx.xxx.xxx.xxx':get remote file and use it)")
     parser.add_argument("--epoch", "-e", type=str, default="", help="Epoch used for evaluation, the default is the newest")

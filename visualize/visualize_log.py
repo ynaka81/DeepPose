@@ -56,7 +56,7 @@ if __name__ == "__main__":
     # arg definition
     parser = argparse.ArgumentParser(description="Visualizing log")
     parser.add_argument("--locate", "-l", type=str, default="localhost", help="Location of model definition file ('localhost':get local file and use it, 'username@xxx.xxx.xxx.xxx':get remote file and use it)")
-    parser.add_argument("--model", "-m", type=str, default="StubNet", help="Model name to visualize log")
+    parser.add_argument("--model", "-m", type=str, default="AlexNet", help="Model name to visualize log")
     parser.add_argument("--local", type=str, default="result", help="The local directory name of training result")
     parser.add_argument("--remote", type=str, default="~/DeepPose/result", help="The remote directory name of training result")
     VisualizeLog(parser.parse_args()).main()
