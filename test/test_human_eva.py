@@ -12,7 +12,7 @@ class TestHumanEva(object):
     # @param train_file The filename of train file
     # @param result_dirname The directory for the test result
     # @param cropping_size The size of cropping for DNN training
-    def __init__(self, train_file="data/train_data", result_dirname="test_result/HumanEva", cropping_size=220):
+    def __init__(self, train_file="data/train_data", result_dirname="test_result/HumanEva", cropping_size=227):
         for key, val in locals().items():
             setattr(self, key, val)
         try:

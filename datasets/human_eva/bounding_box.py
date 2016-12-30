@@ -9,9 +9,9 @@ class BoundingBox(object):
     # @param image The base image
     # @param x_2d The 2d pose of human
     # @param image_size The size of output image, the default value is (256x256)
-    # @param cropping_size The size of cropping for DNN training, the default value is (220x220)
+    # @param cropping_size The size of cropping for DNN training, the default value is (227x227)
     # @param margin The cropping margin, default value is 10
-    def __init__(self, image, x_2d, image_size=256, cropping_size=220, margin=10):
+    def __init__(self, image, x_2d, image_size=256, cropping_size=227, margin=10):
         if 2*(cropping_size - margin) - image_size <= 0:
             raise ValueError("Bad image and cropping size, 2 x (cropping_size({0}) - margin({1})) - image_size({2}) should be > 0".format(cropping_size, margin, image_size))
         # calculate bounding box

@@ -17,7 +17,7 @@ class TestPoseDataset(unittest.TestCase):
         ## pose dataset (0:for train, 1:for test)
         self.__dataset = [PoseDataset("test/train_data_for_test", np.load("data/mean.npy")), PoseDataset("test/train_data_for_test", np.load("data/mean.npy"), data_augmentation=False)]
         ## cropping size
-        self.__cropping_size = 220
+        self.__cropping_size = 227
         ## joint length
         self.__N = 20
         ## the output directory name of qualitative test image

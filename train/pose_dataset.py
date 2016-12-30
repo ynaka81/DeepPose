@@ -11,8 +11,8 @@ class PoseDataset(dataset.DatasetMixin):
     # @param path The filename of train/test file
     # @param mean The mean image
     # @param data_augmentation The flag of data augmentation
-    # @param cropping_size The size of cropping for DNN training, the default value is (220x220)
-    def __init__(self, path, mean, data_augmentation=True, cropping_size=220):
+    # @param cropping_size The size of cropping for DNN training, the default value is (227x227)
+    def __init__(self, path, mean, data_augmentation=True, cropping_size=227):
         self.__mean = mean
         self.__cropping_size = cropping_size
         self.__data_augmentation = data_augmentation
@@ -59,7 +59,7 @@ class PoseDataset(dataset.DatasetMixin):
     ## get i-th example
     # @param self The object pointer
     # @param i The example index
-    # @param i-th example: crop_image(220x220), A(caution:numpy.array, not numpy.matrix), x_2d, x_3d
+    # @param i-th example: crop_image(227x227), A(caution:numpy.array, not numpy.matrix), x_2d, x_3d
     def get_example(self, i):
         image = self.__readImage(self.__images[i])
         A = self.__A[i]
