@@ -1,3 +1,4 @@
+import sys
 import os
 import numpy as np
 import scipy.io
@@ -14,10 +15,6 @@ from human_eva.global_marker_transform import GlobalMarkerTransform
 from human_eva.pose_3d import Pose3D
 from human_eva.pose_2d import Pose2D
 from human_eva.bounding_box import BoundingBox
-
-# TODO:for test, remove later
-import sys
-# TODO:to here
 
 ## HumanEva dataset
 #
@@ -69,7 +66,8 @@ class HumanEva(dataset.Dataset):
     # @param mocap The motion capture data
     # @param sync_param The synchronization parameter
     # @param conic_param The conic limb parameter
-    def __generateData(self, avi_file, png_dir, partition, cam_param, mocap, sync_param, conic_param):
+    # @param log The log
+    def __generateData(self, avi_file, png_dir, partition, cam_param, mocap, sync_param, conic_param, log):
         try:
             os.makedirs(png_dir)
         except OSError:
@@ -113,26 +111,33 @@ class HumanEva(dataset.Dataset):
             image_frame += 1
             if image_frame > partition[1]:
                 break
+            # logging
+            sys.stderr.write("{0} frames({1}/{2})\r".format(log, image_frame, partition[1]))
+            sys.stderr.flush()
         # release memory
         video.release()
     ## main method of generating the HumanEva dataset
     # @param self The object pointer
     def main(self):
         # crawl HumanEva dataset
-        for actor in self.ACTORS:
+        for i, actor in enumerate(self.ACTORS):
             actor_param = ActorParameter(os.path.join(self.__input_dirname, actor, "Mocap_Data", "{0}.mp".format(actor)))
-            for camera in self.CAMERAS:
+            for j, camera in enumerate(self.CAMERAS):
                 cam_param = CameraParameter(os.path.join(self.__input_dirname, actor, "Calibration_Data", camera + ".cal"))
-                for trial in self.TRIALS:
-                    for action in self.ACTIONS:
+                for k, trial in enumerate(self.TRIALS):
+                    for l, action in enumerate(self.ACTIONS):
+                        # logging
+                        log = "generating... actors({0}/{1}) cameras({2}/{3}) trials({4}/{5}) actions({6}/{7})".format(i, len(self.ACTORS), j, len(self.CAMERAS), k, len(self.TRIALS), l, len(self.ACTIONS))
+                        # generate dataset
                         mocap = MotionCaptureData(os.path.join(self.__input_dirname, actor, "Mocap_Data", "{0}_{1}.mat".format(action, trial)))
                         sync_param = SynchronizationParameter(os.path.join(self.__input_dirname, actor, "Sync_Data", "{0}_{1}_({2}).ofs".format(action, trial, camera)))
                         conic_param = ConicLimbParameter(mocap, actor_param)
-                        self.__generateData(os.path.join(self.__input_dirname, actor, "Image_Data", "{0}_{1}_({2}).avi".format(action, trial, camera)), os.path.join(self.__output_dirname, actor, action), self.PARTITION[actor][action], cam_param, mocap, sync_param, conic_param)
+                        self.__generateData(os.path.join(self.__input_dirname, actor, "Image_Data", "{0}_{1}_({2}).avi".format(action, trial, camera)), os.path.join(self.__output_dirname, actor, action), self.PARTITION[actor][action], cam_param, mocap, sync_param, conic_param, log)
                         # TODO:for test, remove later
                         self._saveDataset()
                         sys.exit()
                         # TODO:to here
+        sys.stderr.write("\n")
         self._saveDataset()
 
 
