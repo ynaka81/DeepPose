@@ -19,7 +19,7 @@ class TestDataset(unittest.TestCase):
         ## size of cropping for DNN training
         self.__cropping_size = 227
         ## joint length
-        self.__Nj = 20
+        self.__Nj = 14
         ## output directory name of qualitative test image
         self.__output_dirname = "test_result/Dataset"
         try:
@@ -98,7 +98,7 @@ class TestDataset(unittest.TestCase):
             for i in range(self.__Nj):
                 x = x_3d[:, 3*i:3*(i + 1)]*A.T
                 e = x[0:, :2]/x[0, 2] - x_2d[0:, 2*i:2*(i + 1)]
-                self.assertLess(np.linalg.norm(e), 1.e-2)
+                self.assertLess(np.linalg.norm(e), 1)
 
 if __name__ == "__main__":
     unittest.main()
