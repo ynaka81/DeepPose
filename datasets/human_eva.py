@@ -29,27 +29,16 @@ class HumanEva(dataset.Dataset):
                  "S2":{"Walking": (438, 877), "Jog": (398, 796), "ThrowCatch": (550, 1101), "Gestures": (500, 1000), "Box": (382, 765)},
                  "S3":{"Walking": (448, 896), "Jog": (401, 803), "ThrowCatch": (493, 987), "Gestures": (533, 1067), "Box": (512, 1024)}}
     START_FRAME = 6
-    # TODO:extract using joint
-    MAPPING = {"torsoProximal": "torsoProximal",
-               "torsoDistal": "torsoDistal",
-               "upperLLegProximal": "upperLLegProximal",
-               "upperLLegDistal": "upperLLegDistal",
-               "lowerLLegProximal": "lowerLLegProximal",
-               "lowerLLegDistal": "lowerLLegDistal",
-               "upperRLegProximal": "upperRLegProximal",
-               "upperRLegDistal": "upperRLegDistal",
-               "lowerRLegProximal": "lowerRLegProximal",
-               "lowerRLegDistal": "lowerRLegDistal",
-               "upperLArmProximal": "upperLArmProximal",
-               "upperLArmDistal": "upperLArmDistal",
-               "lowerLArmProximal": "lowerLArmProximal",
-               "lowerLArmDistal": "lowerLArmDistal",
-               "upperRArmProximal": "upperRArmProximal",
-               "upperRArmDistal": "upperRArmDistal",
-               "lowerRArmProximal": "lowerRArmProximal",
-               "lowerRArmDistal": "lowerRArmDistal",
-               "headProximal": "headProximal",
-               "headDistal": "headDistal"}
+    MAPPING = {"head": "headDistal",
+               "neck": "headProximal",
+               "thorax": "torsoProximal",
+               "pelvis": "torsoDistal",
+               "l_shoulder": "upperLArmProximal",
+               "l_wrist": "lowerLArmDistal",
+               "r_shoulder": "upperRArmProximal",
+               "r_wrist": "lowerRArmDistal",
+               "l_ankle": "lowerLLegDistal",
+               "r_ankle": "lowerRLegDistal"}
     ## constructor
     # @param input_dirname The directory name of the input HumanEva dataset root
     # @param output_dirname The directory name of the output image root
@@ -57,6 +46,29 @@ class HumanEva(dataset.Dataset):
         super(HumanEva, self).__init__()
         self.__input_dirname = input_dirname
         self.__output_dirname = output_dirname
+    ## map HumanEva joint list to DeepPose joint list
+    # @param self The object pointer
+    # @param pose The 2D/3D poses
+    # @return The dictionary of DeepPose style joint
+    def __mapJoint(self, pose):
+        x = {k: None for k in self.JOINTS}
+        for name in self.JOINTS:
+            # simple name mapping
+            if name in self.MAPPING:
+                x[name] = pose[self.MAPPING[name]]
+            # calculate DeepPose joint pose
+            else:
+                if "elbow" in name:
+                    if name[0] == "l":
+                        x[name] = (pose["upperLArmDistal"] + pose["lowerLArmProximal"])/2
+                    else:
+                        x[name] = (pose["upperRArmDistal"] + pose["lowerRArmProximal"])/2
+                elif "knee" in name:
+                    if name[0] == "l":
+                        x[name] = (pose["upperLLegDistal"] + pose["lowerLLegProximal"])/2
+                    else:
+                        x[name] = (pose["upperRLegDistal"] + pose["lowerRLegProximal"])/2
+        return x
     ## generate the dataset data
     # @param self The object pointer
     # @param avi_file The filename of video data
@@ -105,8 +117,8 @@ class HumanEva(dataset.Dataset):
             self._images[index].append(filename)
             self._A[index].append(cam_param.A)
             self._A_inv[index].append((cam_param.A_inv*np.matrix(np.diag([bb.s, bb.s, 1])))[:, 0:2])
-            self._x_2d[index].append(x_2d_t)
-            self._x_3d[index].append(x_3d_t)
+            self._x_2d[index].append(self.__mapJoint(x_2d_t))
+            self._x_3d[index].append(self.__mapJoint(x_3d_t))
             # increment image frame
             image_frame += 1
             if image_frame > partition[1]:

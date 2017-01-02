@@ -7,8 +7,7 @@ import numpy as np
 # The base class of dataset
 class Dataset(object):
     # define const values
-    # TODO:define using joints
-    JOINTS = ("torsoProximal", "torsoDistal", "upperLLegProximal", "upperLLegDistal", "lowerLLegProximal", "lowerLLegDistal", "upperRLegProximal", "upperRLegDistal", "lowerRLegProximal", "lowerRLegDistal", "upperLArmProximal", "upperLArmDistal", "lowerLArmProximal", "lowerLArmDistal", "upperRArmProximal", "upperRArmDistal", "lowerRArmProximal", "lowerRArmDistal", "headProximal", "headDistal")
+    JOINTS = ("head", "neck", "thorax", "pelvis", "l_shoulder", "l_elbow", "l_wrist", "r_shoulder", "r_elbow", "r_wrist", "l_knee", "l_ankle", "r_knee", "r_ankle")
     ## constructor
     # @param train_file The filename of train file, the default value is "train_data"
     # @param test_file The filename of test file, the default value is "test_data"
@@ -26,9 +25,9 @@ class Dataset(object):
         self._A = [[], []]
         ## (A^-1*S)[:,0:2], A:camera matrix, S:scale diag matrix (3x2)
         self._A_inv = [[], []]
-        ## 2D pose
+        ## 2D pose dictionaries
         self._x_2d = [[], []]
-        ## 3D pose
+        ## 3D pose dictionaries
         self._x_3d = [[], []]
     ## save the dataset
     # @param self The object pointer
