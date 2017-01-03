@@ -18,9 +18,9 @@ class PoseDataset(dataset.DatasetMixin):
         self.__data_augmentation = data_augmentation
         ## image filename
         self.__images = []
-        ## the camera matrix
+        ## the camera matrix (3x3)
         self.__A = []
-        ## the inverse matrix of scaled camera matrix
+        ## the inverse matrix of camera matrix (3x2)
         self.__A_inv = []
         ## hstack of 2D pose (x0.T, x1.T, ...)
         self.__x_2d = []
@@ -36,10 +36,12 @@ class PoseDataset(dataset.DatasetMixin):
             s = line.split(",")
             self.__images.append(s[0])
             s_f = map(np.float32, s[offset:])
-            self.__A.append(np.array([[s_f[0], s_f[1], s_f[2]], [s_f[3], s_f[4], s_f[5]], [s_f[6], s_f[7], s_f[8]]]))
-            self.__A_inv.append(np.matrix([[s_f[9], s_f[10]], [s_f[11], s_f[12]], [s_f[13], s_f[14]]]))
-            self.__x_2d.append(np.hstack(zip(s_f[15::5], s_f[16::5])))
-            self.__x_3d.append(np.hstack(zip(s_f[17::5], s_f[18::5], s_f[19::5])))
+            A = np.array([[s_f[0], s_f[1], s_f[2]], [s_f[3], s_f[4], s_f[5]], [s_f[6], s_f[7], s_f[8]]])
+            A_inv = np.linalg.inv(A)[:, :2]
+            self.__A.append(A)
+            self.__A_inv.append(A_inv)
+            self.__x_2d.append(np.hstack(zip(s_f[9::5], s_f[10::5])))
+            self.__x_3d.append(np.hstack(zip(s_f[11::5], s_f[12::5], s_f[13::5])))
     ## read image as numpy array
     # @param self The object pointer
     # @param path The path to image file
@@ -89,10 +91,10 @@ class PoseDataset(dataset.DatasetMixin):
             image = np.clip(image, 0, 255)
         # mean zeroing
         image -= self.__mean[:, top:bottom, left:right]
-        # scale to [-1, 1]
+        # scale to [-1, 1] for image
         image /= 255.
-        # scale to [0, 1]
+        # scale to [0, 1] for x_2d
         x_2d = x_2d/self.__cropping_size
-        # convert milimeter into meter
+        # convert milimeter into meter for x_3d
         x_3d = x_3d/1000.
         return image, A, x_2d, x_3d

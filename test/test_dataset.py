@@ -29,7 +29,7 @@ class TestDataset(unittest.TestCase):
     ## test data length
     # @param self The object pointer
     def testDataLength(self):
-        N = 1 + 9 + 6 + 5*self.__Nj
+        N = 1 + 9 + 5*self.__Nj
         for line in self.__lines:
             self.assertEqual(len(line.split(",")), N)
     ## test image existence
@@ -49,16 +49,6 @@ class TestDataset(unittest.TestCase):
                     self.assertNotEqual(s_i, 0)
                 else:
                     self.assertEqual(s_i, 0)
-    ## test inverse matrix of scaled camera matrix TODO:it is necessary?
-    # @param self The object pointer
-    def testInverseCameraMatrix(self):
-        for line in self.__lines:
-            s = map(np.float32, line.split(",")[1:])
-            for i, s_i in enumerate(s[9:15]):
-                if i in (0, 3):
-                    self.assertNotEqual(s_i, 0)
-                else:
-                    self.assertEqual(s_i, 0)
     ## test 2D position
     # @param self The object pointer
     def test2dPosition(self):
@@ -71,7 +61,7 @@ class TestDataset(unittest.TestCase):
             image = cv2.imread(split[0])
             h, w, _ = image.shape
             w_, h_ = w - self.__cropping_size, h - self.__cropping_size
-            s = map(np.float32, split[1 + 9 + 6:])
+            s = map(np.float32, split[1 + 9:])
             x = np.hstack(zip(s[0::5], s[1::5]))
             # quantitative test
             self.assertTrue((np.floor(x + margin) <= (self.__cropping_size, self.__cropping_size)*self.__Nj).all())
@@ -92,8 +82,8 @@ class TestDataset(unittest.TestCase):
             split = line.split(",")
             s = map(np.float32, split[1:])
             A = np.matrix([[s[0], s[1], s[2]], [s[3], s[4], s[5]], [s[6], s[7], s[8]]])
-            x_2d = np.matrix(np.hstack(zip(s[15::5], s[16::5])))
-            x_3d = np.matrix(np.hstack(zip(s[17::5], s[18::5], s[19::5])))
+            x_2d = np.matrix(np.hstack(zip(s[9::5], s[10::5])))
+            x_3d = np.matrix(np.hstack(zip(s[11::5], s[12::5], s[13::5])))
             # 2D->3D mapping error should be ignorable because of nonlinear factor
             for i in range(self.__Nj):
                 x = x_3d[:, 3*i:3*(i + 1)]*A.T

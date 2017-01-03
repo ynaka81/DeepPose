@@ -19,7 +19,7 @@ class TestPoseDataset(unittest.TestCase):
         ## cropping size
         self.__cropping_size = 227
         ## joint length
-        self.__N = 20
+        self.__N = 14
         ## the output directory name of qualitative test image
         self.__output_dirname = "test_result/PoseDataset"
         try:
@@ -48,6 +48,13 @@ class TestPoseDataset(unittest.TestCase):
                     self.assertTrue((x_2d < 1.).all())
                     self.assertEqual(x_2d.shape, (2*self.__N,))
                     self.assertEqual(x_3d.shape, (3*self.__N,))
+                    # quantitative test for mapping error between 2D and 3D
+                    A_m, x_2d_m, x_3d_m = (np.matrix(x) for x in (A, x_2d, x_3d))
+                    for k in range(self.__N):
+                        x = x_3d[3*k:3*(k + 1)]*A_m.T
+                        x /= x[0, 2]
+                        e = x[0, 0:2] - x_2d[2*k:2*(k + 1)]*self.__cropping_size
+                        self.assertLess(np.linalg.norm(e), 1)
                     # qualitative test for image (scale to 0-255)
                     image_ = Image.fromarray(np.uint8((image.transpose(1, 2, 0) + 1)/2*255))
                     draw = ImageDraw.Draw(image_)
