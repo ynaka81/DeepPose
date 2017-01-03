@@ -64,17 +64,16 @@ class MotionCaptureData(object):
                           "MARKER_RFHD": "RFHD",
                           "MARKER_RBHD": "RBHD"}
         for k, v in self.parameter.items():
-            self.parameter[k] = [x[0] for x in self.__data].index("RL:{0}".format(v))
+            self.parameter[k] = [i for i, x in enumerate(self.__data) if v in x[0]][0]
     ## check whether all markers is visible
     # @param self The object pointer
     # @param frame The current frame (type:float)
     def isValid(self, frame):
         for marker in self.MARKERS:
             if isinstance(marker, str):
-                index = [x[0] for x in self.__data].index("RL:{0}".format(marker))
+                index = [i for i, x in enumerate(self.__data) if marker in x[0]][0]
             else:
-                data = [x[0] for x in self.__data]
-                index = data.index("RL:{0}".format(marker[0])) if marker[0] in data else data.index("RL:{0}".format(marker[1]))
+                index = [i for i, x in enumerate(self.__data) if any([m in x[0] for m in marker])][0]
             if (self.marker[int(np.floor(frame)), index] == 0).all() or (self.marker[int(np.ceil(frame)), index] == 0).all():
                 return False
         return True
