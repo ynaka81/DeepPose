@@ -64,7 +64,10 @@ class MotionCaptureData(object):
                           "MARKER_RFHD": "RFHD",
                           "MARKER_RBHD": "RBHD"}
         for k, v in self.parameter.items():
-            self.parameter[k] = [i for i, x in enumerate(self.__data) if v in x[0]][0]
+            try:
+                self.parameter[k] = [i for i, x in enumerate(self.__data) if v in x[0]][0]
+            except IndexError:
+                raise RuntimeError("The motion capture data file ({0}) is not valid.".format(mat_file))
     ## check whether all markers is visible
     # @param self The object pointer
     # @param frame The current frame (type:float)

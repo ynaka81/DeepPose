@@ -139,8 +139,11 @@ class HumanEva(dataset.Dataset):
                     for l, action in enumerate(self.ACTIONS):
                         # logging
                         log = "generating... actors({0}/{1}) cameras({2}/{3}) trials({4}/{5}) actions({6}/{7})".format(i, len(self.ACTORS), j, len(self.CAMERAS), k, len(self.TRIALS), l, len(self.ACTIONS))
-                        # generate dataset
-                        mocap = MotionCaptureData(os.path.join(self.__input_dirname, actor, "Mocap_Data", "{0}_{1}.mat".format(action, trial)))
+                        # if mocap data is valid, generate dataset
+                        try:
+                            mocap = MotionCaptureData(os.path.join(self.__input_dirname, actor, "Mocap_Data", "{0}_{1}.mat".format(action, trial)))
+                        except RuntimeError:
+                            continue
                         sync_param = SynchronizationParameter(os.path.join(self.__input_dirname, actor, "Sync_Data", "{0}_{1}_({2}).ofs".format(action, trial, camera)))
                         conic_param = ConicLimbParameter(mocap, actor_param)
                         self.__generateData(os.path.join(self.__input_dirname, actor, "Image_Data", "{0}_{1}_({2}).avi".format(action, trial, camera)), os.path.join(self.__output_dirname, actor, action), self.PARTITION[actor][action], cam_param, mocap, sync_param, conic_param, log)
