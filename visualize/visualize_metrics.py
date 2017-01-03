@@ -18,8 +18,7 @@ from model_file_getter import ModelFileGetter
 # The metrics visualization tool for algorithm evaluation
 class VisualizeMetrics(object):
     # define const values
-    # TODO:define using joints
-    JOINTS = ("torsoProximal", "torsoDistal", "upperLLegProximal", "upperLLegDistal", "lowerLLegProximal", "lowerLLegDistal", "upperRLegProximal", "upperRLegDistal", "lowerRLegProximal", "lowerRLegDistal", "upperLArmProximal", "upperLArmDistal", "lowerLArmProximal", "lowerLArmDistal", "upperRArmProximal", "upperRArmDistal", "lowerRArmProximal", "lowerRArmDistal", "headProximal", "headDistal")
+    JOINTS = ("head", "neck", "thorax", "pelvis", "l_shoulder", "l_elbow", "l_wrist", "r_shoulder", "r_elbow", "r_wrist", "l_knee", "l_ankle", "r_knee", "r_ankle")
     ## constructor
     # @param args The command line arguments
     def __init__(self, args):
@@ -82,7 +81,7 @@ class VisualizeMetrics(object):
                         for m, y_m in enumerate(y):
                             # TODO:calculate relative position error
                             e = (y_m - x_3d[:, 3*m: 3*(m + 1)].T)*1000.
-                            E[l, m] = (e.T*e)[0, 0]
+                            E[l, m] = np.linalg.norm(e)
                         # logging
                         sys.stderr.write("calculating... estimators({0}/{1}) dataset({2}/{3}) epoch({4}/{5}) data({6}/{7})\r".format(i, len(estimators), j, len(dataset), k, len(model_file_list), l, len(dataset_j)))
                         sys.stderr.flush()
@@ -111,7 +110,7 @@ class VisualizeMetrics(object):
         r = 1.0/(2*rows + 6.3)
         f = lambda x: 1 - x*r
         gs1 = gridspec.GridSpec(1, 2, top=f(0.3), bottom=f(2.3))
-        gs2 = gridspec.GridSpec(1, 2, top=f(3.0), bottom=f(5.0))
+        gs2 = gridspec.GridSpec(1, 2, top=f(3.2), bottom=f(5.2))
         gs3 = gridspec.GridSpec(rows, 2, top=f(6.2), bottom=f(2*rows + 6.2))
         fig = plt.figure(figsize=(15, 2*rows + 6.3))
         legend = ["{0}.{1}".format(c.__class__.__name__, c.model.__class__.__name__) for c in estimators]
@@ -122,18 +121,19 @@ class VisualizeMetrics(object):
         loss_plot = plt.subplot(gs1[0, 0])
         for i, e in enumerate(E_all_epoch):
             loss_plot.plot(e[0], e[1], color=color(i))
+        loss_plot.set_yscale("log")
         loss_plot.legend(legend)
-        loss_plot.set_title("loss function value per epoch")
+        loss_plot.set_title("MPJPE (mean per joint position error) per epoch")
         loss_plot.set_xlabel("epoch")
-        loss_plot.set_ylabel("loss")
+        loss_plot.set_ylabel("MPJPE [mm]")
         # time series
         time_series_plot = plt.subplot(gs1[0, 1])
         for i, e in enumerate(E_epoch_i):
             time_series_plot.plot(range(e.shape[0]), e.mean(axis=1), color=color(i))
         time_series_plot.legend(legend)
-        time_series_plot.set_title("loss function value per frame")
+        time_series_plot.set_title("MPJPE (mean per joint position error) per frame")
         time_series_plot.set_xlabel("frame")
-        time_series_plot.set_ylabel("loss")
+        time_series_plot.set_ylabel("MPJPE [mm]")
         # absolute position error plot
         abs_plot = plt.subplot(gs2[0, 0])
         Ne = len(E_epoch_i)
@@ -146,8 +146,7 @@ class VisualizeMetrics(object):
         abs_plot.set_xticklabels(self.JOINTS, rotation=90, fontsize="small")
         abs_plot.set_xlim([-1, len(self.JOINTS)])
         abs_plot.set_title("joint absolute position error")
-        abs_plot.set_xlabel("joints")
-        abs_plot.set_ylabel("square error")
+        abs_plot.set_ylabel("error [mm]")
         # relative position error plot(TODO:implement)
         rel_plot = plt.subplot(gs2[0, 1])
         # draw qualitative image plot
@@ -194,6 +193,6 @@ if __name__ == "__main__":
     parser.add_argument("--eval", type=str, default="data/test_data", help="Path to evaluating image-pose list file")
     parser.add_argument("--test", type=str, default="data/test_data", help="Path to testing image-pose list file")
     parser.add_argument("--mean", type=str, default="data/mean.npy", help="Mean image file (computed by compute_mean.py)")
-    parser.add_argument('--Nj', type=int, default=20, help="Number of joints")
+    parser.add_argument('--Nj', type=int, default=14, help="Number of joints")
     parser.add_argument("--out", default="result/metrics", help="Output directory")
     VisualizeMetrics(parser.parse_args()).main()

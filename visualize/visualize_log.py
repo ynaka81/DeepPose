@@ -46,6 +46,7 @@ class VisualizeLog(object):
         # draw graph
         plt.plot(train_epoch, train_loss, label="train")
         plt.plot(val_epoch, val_loss, label="validation")
+        plt.yscale("log")
         plt.legend()
         plt.title("loss function value per epoch")
         plt.xlabel("epoch")
