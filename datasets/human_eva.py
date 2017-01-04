@@ -89,6 +89,11 @@ class HumanEva(dataset.Dataset):
         video = cv2.VideoCapture(avi_file)
         video.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, image_frame)
         while(video.isOpened()):
+            if image_frame > partition[1]:
+                break
+            # logging
+            sys.stderr.write("{0} frames({1}/{2})\r".format(log, image_frame, partition[1]))
+            sys.stderr.flush()
             # get current image frame
             ret, frame = video.read()
             if not ret:
@@ -105,7 +110,11 @@ class HumanEva(dataset.Dataset):
             x_3d_t = Pose3D(Tm, length)
             x_2d_t = Pose2D(x_3d_t, cam_param)
             # calculate bounding box
-            bb = BoundingBox(frame, x_2d_t)
+            try:
+                bb = BoundingBox(frame, x_2d_t)
+            except RuntimeError:
+                image_frame += 1
+                continue
             # modify 2D/3D pose accoring to the bounding box
             x_3d_t.modify(bb, cam_param)
             x_2d_t.modify(bb)
@@ -120,11 +129,6 @@ class HumanEva(dataset.Dataset):
             self._x_3d[index].append(self.__mapJoint(x_3d_t))
             # increment image frame
             image_frame += 1
-            if image_frame > partition[1]:
-                break
-            # logging
-            sys.stderr.write("{0} frames({1}/{2})\r".format(log, image_frame, partition[1]))
-            sys.stderr.flush()
         # release memory
         video.release()
     ## main method of generating the HumanEva dataset

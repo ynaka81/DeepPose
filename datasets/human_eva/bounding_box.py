@@ -20,26 +20,52 @@ class BoundingBox(object):
         y = [float(v[1]) for v in x_2d_list]
         x_min, x_max = min(x), max(x)
         y_min, y_max = min(y), max(y)
-        # extend bounding box considering cropping size
-        c = cropping_size - margin
-        k = 1.0*max(x_max - x_min, y_max - y_min)/(2*c - image_size)
+        # check the existence of solution
+        exist = True
+        c = float(cropping_size - margin)
+        s = float(image_size)
         h, w, _ = image.shape
+        p_min, p_max = np.array([x_min, y_min]), np.array([x_max, y_max])
+        if ((-(s - c)*p_max + c*p_min)/(2*c - s) < 0).any() or ((c*p_min - (s - c)*p_min)/(2*c - s) > np.array([w, h])).any():
+            exist = False
+        l = s/(2*c - s)
         if (x_max - x_min) > (y_max - y_min):
-            u_min = max(x_max - k*c, 0)
-            u_max = min(x_min + k*c, w)
+            if h < l*(x_max - x_min) or (s - c)*(x_max - x_min) > (2*c - s)*min(y_min, h - y_max):
+                exist = False
+        else:
+            if w < l*(y_max - y_min) or (s - c)*(y_max - y_min) > (2*c - s)*min(x_min, w - x_max):
+                exist = False
+        if not exist:
+            raise RuntimeError("The assumption is broken that the person in the screen is not big so much and all marker is seen after cropping.")
+        # extend bounding box considering cropping size
+        k = 1.0*max(x_max - x_min, y_max - y_min)/(2*c - s)
+        if (x_max - x_min) > (y_max - y_min):
+            u_min = x_min - k*(s - c)
+            u_max = x_max + k*(s - c)
             w_2 = (u_max - u_min)/2
             y_c = (y_max + y_min)/2
-            v_min = max(y_c - w_2, 0)
-            v_max = min(y_c + w_2, h)
+            if y_c + w_2 < h:
+                y_c = h - w_2
+            elif y_c < w_2:
+                y_c = w_2
+            v_min = y_c - w_2
+            v_max = y_c + w_2
         else:
-            v_min = max(y_max - k*c, 0)
-            v_max = min(y_min + k*c, h)
+            v_min = y_min - k*(s - c)
+            v_max = y_max + k*(s - c)
             h_2 = (v_max - v_min)/2
             x_c = (x_max + x_min)/2
-            u_min = max(x_c - h_2, 0)
-            u_max = min(x_c + h_2, w)
+            if w - h_2 < x_c:
+                x_c = w - h_2
+            elif x_c < h_2:
+                x_c = h_2
+            u_min = x_c - h_2
+            u_max = x_c + h_2
+        # discretization
         u_min, u_max, v_min, v_max = int(np.floor(u_min)), int(np.ceil(u_max)), int(np.floor(v_min)), int(np.ceil(v_max))
-        cropping_image = image[v_min:v_max, u_min:u_max]
+        h = max(u_max - u_min, v_max - v_min)
+        k = 1.*h/image_size
+        cropping_image = image[v_min:v_min + h, u_min:u_min + h]
         ## the image cropped by bounding box
         self.image = cv2.resize(cropping_image, (image_size, image_size))
         ## bounding box image coordinate origin

@@ -65,7 +65,7 @@ class TestDataset(unittest.TestCase):
             x = np.hstack(zip(s[0::5], s[1::5]))
             # quantitative test
             self.assertTrue((np.floor(x + margin) <= (self.__cropping_size, self.__cropping_size)*self.__Nj).all())
-            self.assertTrue(((w_, h_)*self.__Nj < np.ceil(x - margin)).all())
+            self.assertTrue(((w_, h_)*self.__Nj <= np.ceil(x - margin)).all())
             # qualitative test, random 10 sample
             if i in samples:
                 # test image and corresponding 2D pose
