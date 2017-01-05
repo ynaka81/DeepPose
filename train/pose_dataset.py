@@ -51,7 +51,9 @@ class PoseDataset(dataset.DatasetMixin):
         try:
             image = np.asarray(f, dtype=np.float32)
         finally:
-            f.close()
+            # cope with pillow < 3.0
+            if hasattr(f, "close"):
+                f.close()
         return image.transpose(2, 0, 1)
     ## get length
     # @param self The object pointer
