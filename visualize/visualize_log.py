@@ -36,10 +36,10 @@ class VisualizeLog(object):
         val_epoch = []
         val_loss = []
         for data in json.load(open(os.path.join(temp, "log"))):
-            train_epoch.append(data["epoch"])
+            train_epoch.append(data["iteration"])
             train_loss.append(data["main/loss"])
             if "validation/main/loss" in data:
-                val_epoch.append(data["epoch"])
+                val_epoch.append(data["iteration"])
                 val_loss.append(data["validation/main/loss"])
         # remove temp directory
         shutil.rmtree(temp)

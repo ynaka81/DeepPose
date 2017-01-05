@@ -140,7 +140,7 @@ class VisualizeMetrics(object):
         d = 1.8/(3*Ne - 1)
         m = (Ne + 1)/2
         for i, e in enumerate(E_epoch_i):
-            abs_plot.bar([j + d*(i - m) for j in range(e.shape[1])], e.mean(axis=0), yerr=e.std(axis=0), align="center", width=0.9/Ne, color=color(i), ecolor="k")
+            abs_plot.bar([j + d*(i - m) for j in range(e.shape[1])], e.mean(axis=0), yerr=e.std(axis=0), align="center", width=0.7/Ne, color=color(i), ecolor="k")
         abs_plot.legend(legend)
         abs_plot.set_xticks(range(len(self.JOINTS)))
         abs_plot.set_xticklabels(self.JOINTS, rotation=90, fontsize="small")
