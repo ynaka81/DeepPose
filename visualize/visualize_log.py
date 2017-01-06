@@ -26,7 +26,7 @@ class VisualizeLog(object):
         if self.args.locate == "localhost":
             shutil.copy(os.path.join(self.args.local, self.args.model, "log"), temp)
         else:
-            user, host = l.split("@")
+            user, host = self.args.locate.split("@")
             self.ssh.connect(host, username=user)
             with scp.SCPClient(self.ssh.get_transport()) as scp_client:
                 scp_client.get(os.path.join(self.args.remote, self.args.model, "log"), temp)

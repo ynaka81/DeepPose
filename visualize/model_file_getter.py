@@ -17,6 +17,10 @@ class ModelFileGetter(object):
             setattr(self, k, v)
         self.ssh = paramiko.SSHClient()
         self.ssh.load_system_host_keys()
+        try:
+            os.makedirs(self.local_model_dir)
+        except OSError:
+            pass
     ## get model files
     # @param self The object pointer
     # @param locate Location of model definition file ('local':use local file, 'xxx.xxx.xxx.xxx':get remote file and use it)
