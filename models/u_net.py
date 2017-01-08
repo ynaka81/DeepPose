@@ -1,7 +1,10 @@
 import numpy as np
 import chainer
+from chainer import cuda
 import chainer.functions as F
 import chainer.links as L
+
+from models.functions.channel_wise_softmax_cross_entropy import channel_wise_softmax_cross_entropy
 
 ## The U-Net
 #
@@ -68,17 +71,22 @@ class UNet(chainer.Chain):
     # @return loss
     def __call__(self, image, A, x_2d, x_3d):
         y = self.predict(image)
+        xp = cuda.get_array_module(y)
         # generate ground truth labels
-        b, Nj, h, w = y.shape
-        t = np.full((b, h, w), -1, dtype=np.int32)
+        _, Nj, h, w = y.shape
+        t = np.full(y.shape, -1, dtype=np.float32)
         for i, x_2d_i in enumerate(x_2d):
             for j, x_2d_j in enumerate(F.split_axis(x_2d_i*h, Nj, 0)):
                 # 4-nearest neighbor
-                t[i, F.cast(F.floor(x_2d_j[1]), int).data, F.cast(F.floor(x_2d_j[0]), int).data] = j
-                t[i, F.cast(F.floor(x_2d_j[1]), int).data,  F.cast(F.ceil(x_2d_j[0]), int).data] = j
-                t[i, F.cast( F.ceil(x_2d_j[1]), int).data, F.cast(F.floor(x_2d_j[0]), int).data] = j
-                t[i, F.cast( F.ceil(x_2d_j[1]), int).data,  F.cast(F.ceil(x_2d_j[0]), int).data] = j
+                u0, v0 = x_2d_j[0].data, x_2d_j[1].data
+                u = (int(xp.floor(u0)), int(xp.ceil(u0)))
+                v = (int(xp.floor(v0)), int(xp.ceil(v0)))
+                for u_k in u:
+                    for v_l in v:
+                        t[i, j, v_l, u_k] = xp.sqrt((u_k + 0.5 - u0)**2 + (v_l + 0.5 - v0)**2)
+                t_sub = t[i, j, v[0]:v[1] + 1, u[0]:u[1] + 1]
+                t_sub /= t_sub.sum()
         # calculate loss
-        loss = chainer.functions.softmax_cross_entropy(y, t)
+        loss = channel_wise_softmax_cross_entropy(y, t)
         chainer.report({"loss": loss}, self)
         return loss

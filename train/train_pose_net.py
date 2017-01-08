@@ -1,4 +1,5 @@
 import os
+import sys
 import argparse
 import imp
 import numpy as np
@@ -10,6 +11,9 @@ from chainer.training import extensions
 import chainer
 
 from pose_dataset import PoseDataset
+
+sys.path.append("./")
+import models
 
 ## The supplement class
 #
