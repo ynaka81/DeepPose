@@ -37,6 +37,18 @@ class TrainPoseNet(object):
     def __init__(self, args):
         ## command line arguments
         self.__args = args
+    ## get optimizer
+    # @param self The object pointer
+    # @param args The command line arguments
+    def _getOptimizer(self, args):
+        if args.opt == "MomentumSGD":
+            optimizer = optimizers.MomentumSGD()
+            # optimizer.add_hook(chainer.optimizer.WeightDecay(weight_decay)) TODO:is it necessary?
+        elif args.opt == "Adam":
+            optimizer = optimizers.Adam()
+        else:
+            raise ValueError("No optimizer is selected.")
+        return optimizer
     ## main method of generating the HumanEva dataset
     # @param self The object pointer
     def main(self):
@@ -61,7 +73,7 @@ class TrainPoseNet(object):
         train_iter = chainer.iterators.MultiprocessIterator(train, args.batchsize)
         val_iter = chainer.iterators.MultiprocessIterator(val, args.batchsize, repeat=False, shuffle=False)
         # Set up an optimizer
-        optimizer = chainer.optimizers.MomentumSGD(lr=0.01, momentum=0.9) #TODO: tune
+        optimizer = self._getOptimizer(args)
         optimizer.setup(model)
         if args.resume_opt:
             chainer.serializers.load_npz(args.resume_opt, optimizer)
@@ -93,11 +105,12 @@ if __name__ == "__main__":
     parser.add_argument("--model", "-m", type=str, default="models/alex_net.py", help="Model definition file in models dir")
     parser.add_argument("--gpu", "-g", type=int, default=-1, help="GPU ID (negative value indicates CPU)")
     parser.add_argument("--epoch", "-e", type=int, default=100, help="Number of epochs to train")
+    parser.add_argument("--opt", "-o", type=str, default="MomentumSGD", choices=["MomentumSGD", "Adam"], help="Optimization method")
     parser.add_argument("--test", action="store_true", default=False, help="True when you would test something")
     parser.add_argument("--train", type=str, default="data/train_data", help="Path to training image-pose list file")
     parser.add_argument("--val", type=str, default="data/test_data", help="Path to validation image-pose list file")
     parser.add_argument("--mean", type=str, default="data/mean.npy", help="Mean image file (computed by compute_mean.py)")
-    parser.add_argument('--Nj', type=int, default=14, help="Number of joints")
+    parser.add_argument("--Nj", type=int, default=14, help="Number of joints")
     parser.add_argument("--batchsize", type=int, default=32, help="Learning minibatch size")
     parser.add_argument("--out", default="result", help="Output directory")
     parser.add_argument("--resume", default=None, help="Initialize the trainer from given file. The file name is 'epoch-{.updater.epoch}.iter'")
