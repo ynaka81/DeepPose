@@ -35,10 +35,10 @@ class FusionNet(chainer.Chain):
     # @return predicted 2D joint location distribution
     def _predict2D(self, x, x_2d):
         # TODO:use U-Net
-        xp = cuda.get_array_module(x)
+        xp = cuda.get_array_module(x.data)
         b, _, h, w = x.shape
         Nj = len(x_2d[0])/2
-        X = np.zeros((b, Nj, h + 1, w + 1), dtype=np.float32)
+        X = xp.zeros((b, Nj, h + 1, w + 1), dtype=np.float32)
         for i, x_2d_i in enumerate(x_2d):
             for j, x_2d_j in enumerate(F.split_axis(x_2d_i*h, Nj, 0)):
                 # 4-nearest neighbor

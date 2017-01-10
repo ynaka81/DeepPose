@@ -36,6 +36,7 @@ class UNet(chainer.Chain):
     # @param x The input image
     # @return predicted 2D pose distribution
     def predict(self, x):
+        xp = cuda.get_array_module(x.data)
         # contracting path
         c1 = F.relu(self.conv1(x))
         c2 = F.max_pooling_2d(c1, 2, stride=2, pad=0)
@@ -47,9 +48,9 @@ class UNet(chainer.Chain):
         c8 = F.max_pooling_2d(c7, 2, stride=2, pad=0)
         # concat
         s  = c7.shape
-        z  = np.zeros([s[0], s[1], s[2], 1], dtype=np.float32)
+        z  = xp.zeros([s[0], s[1], s[2], 1], dtype=np.float32)
         m1 = F.concat([c7, z], axis=3)
-        z  = np.zeros([s[0], s[1], 1, s[3] + 1], dtype=np.float32)
+        z  = xp.zeros([s[0], s[1], 1, s[3] + 1], dtype=np.float32)
         m1 = F.concat([m1, z], axis=2)
         # expansive path
         e1 = F.relu(self.conv5(c8))
@@ -71,10 +72,10 @@ class UNet(chainer.Chain):
     # @return loss
     def __call__(self, image, A, x_2d, x_3d):
         y = self.predict(image)
-        xp = cuda.get_array_module(y)
+        xp = cuda.get_array_module(y.data)
         # generate ground truth labels
         _, Nj, h, w = y.shape
-        t = np.full(y.shape, -1, dtype=np.float32)
+        t = xp.full(y.shape, -1, dtype=np.float32)
         for i, x_2d_i in enumerate(x_2d):
             for j, x_2d_j in enumerate(F.split_axis(x_2d_i*h, Nj, 0)):
                 # 4-nearest neighbor
