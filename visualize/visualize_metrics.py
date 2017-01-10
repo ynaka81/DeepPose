@@ -56,7 +56,7 @@ class VisualizeMetrics(object):
         # loop with models
         pattern = re.compile("epoch-(\d+)\.model")
         E_all_epoch = []
-        E_epoch_i = []
+        E_epoch_i = {"abs":[], "rel":[]}
         case = []
         for i, (epoch_i, estimator_i, model_file_dir_i) in enumerate(zip(epoch, estimators, model_file_dir)):
             case.append([[], []])
@@ -73,26 +73,29 @@ class VisualizeMetrics(object):
                 for k, model_file_k in enumerate(model_file_list):
                     # init model with epoch-*.model
                     estimator_i.init(model_file_k)
-                    E = np.zeros((len(dataset_j), args.Nj))
+                    E = {"abs":np.zeros((len(dataset_j), args.Nj)), "rel":np.zeros((len(dataset_j), args.Nj))}
                     for l in range(len(dataset_j)):
                         image, A, x_2d, x_3d = dataset_j.get_example(l)
                         x_3d = np.matrix(x_3d)
                         y = estimator_i(image)
+                        e_root = (y[3] - x_3d[:, 3*3:3*4].T)*1000.
                         for m, y_m in enumerate(y):
-                            # TODO:calculate relative position error
                             e = (y_m - x_3d[:, 3*m: 3*(m + 1)].T)*1000.
-                            E[l, m] = np.linalg.norm(e)
+                            e_rel = e - e_root
+                            E["abs"][l, m] = np.linalg.norm(e)
+                            E["rel"][l, m] = np.linalg.norm(e_rel)
                         # logging
                         sys.stderr.write("calculating... estimators({0}/{1}) dataset({2}/{3}) epoch({4}/{5}) data({6}/{7})\r".format(i, len(estimators), j, len(dataset), k, len(model_file_list), l, len(dataset_j)))
                         sys.stderr.flush()
                     # keep the epoch
                     E_all_epoch[len(dataset)*i + j][0].append(int(pattern.search(model_file_k).group(1)))
-                    E_all_epoch[len(dataset)*i + j][1].append(E.mean())
+                    E_all_epoch[len(dataset)*i + j][1].append(E["abs"].mean())
                     if model_file_k == epoch_i_model:
-                        E_epoch_i.append(E)
+                        E_epoch_i["abs"].append(E["abs"])
+                        E_epoch_i["rel"].append(E["rel"])
                         # calculate best/worst estimation and corresponding result
                         if j == 0:
-                            E_mean = E.mean(axis=1)
+                            E_mean = E["abs"].mean(axis=1)
                             l_min_max = [np.argpartition(E_mean, 3)[:3], np.argpartition(E_mean, -3)[-3:]]
                             for l in range(2):
                                 for index in l_min_max[l]:
@@ -128,27 +131,26 @@ class VisualizeMetrics(object):
         loss_plot.set_ylabel("MPJPE [mm]")
         # time series
         time_series_plot = plt.subplot(gs1[0, 1])
-        for i, e in enumerate(E_epoch_i):
+        for i, e in enumerate(E_epoch_i["abs"]):
             time_series_plot.plot(range(e.shape[0]), e.mean(axis=1), color=color(i))
         time_series_plot.legend(legend)
         time_series_plot.set_title("MPJPE (mean per joint position error) per frame")
         time_series_plot.set_xlabel("frame")
         time_series_plot.set_ylabel("MPJPE [mm]")
-        # absolute position error plot
-        abs_plot = plt.subplot(gs2[0, 0])
-        Ne = len(E_epoch_i)
+        # position error plot
+        Ne = len(E_epoch_i["abs"])
         d = 1.8/(3*Ne - 1)
         m = (Ne + 1)/2
-        for i, e in enumerate(E_epoch_i):
-            abs_plot.bar([j + d*(i - m) for j in range(e.shape[1])], e.mean(axis=0), yerr=e.std(axis=0), align="center", width=0.7/Ne, color=color(i), ecolor="k")
-        abs_plot.legend(legend)
-        abs_plot.set_xticks(range(len(self.JOINTS)))
-        abs_plot.set_xticklabels(self.JOINTS, rotation=90, fontsize="small")
-        abs_plot.set_xlim([-1, len(self.JOINTS)])
-        abs_plot.set_title("joint absolute position error")
-        abs_plot.set_ylabel("error [mm]")
-        # relative position error plot(TODO:implement)
-        rel_plot = plt.subplot(gs2[0, 1])
+        for i, coord in enumerate(("abs", "rel")):
+            pos_plot = plt.subplot(gs2[0, i])
+            for j, e in enumerate(E_epoch_i[coord]):
+                pos_plot.bar([k + d*(j - m) for k in range(e.shape[1])], e.mean(axis=0), yerr=e.std(axis=0), align="center", width=0.7/Ne, color=color(j), ecolor="k")
+            pos_plot.legend(legend)
+            pos_plot.set_xticks(range(len(self.JOINTS)))
+            pos_plot.set_xticklabels(self.JOINTS, rotation=90, fontsize="small")
+            pos_plot.set_xlim([-1, len(self.JOINTS)])
+            pos_plot.set_title("joint {0} position error".format("absolute" if coord == "abs" else "relative"))
+            pos_plot.set_ylabel("error [mm]")
         # draw qualitative image plot
         offset = 10
         for i, case_i in enumerate(case):
