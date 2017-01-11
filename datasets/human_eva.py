@@ -150,7 +150,7 @@ class HumanEva(dataset.Dataset):
                             continue
                         sync_param = SynchronizationParameter(os.path.join(self.__input_dirname, actor, "Sync_Data", "{0}_{1}_({2}).ofs".format(action, trial, camera)))
                         conic_param = ConicLimbParameter(mocap, actor_param)
-                        self.__generateData(os.path.join(self.__input_dirname, actor, "Image_Data", "{0}_{1}_({2}).avi".format(action, trial, camera)), os.path.join(self.__output_dirname, actor, action), self.PARTITION[actor][action], cam_param, mocap, sync_param, conic_param, log)
+                        self.__generateData(os.path.join(self.__input_dirname, actor, "Image_Data", "{0}_{1}_({2}).avi".format(action, trial, camera)), os.path.join(self.__output_dirname, actor, action, camera), self.PARTITION[actor][action], cam_param, mocap, sync_param, conic_param, log)
         sys.stderr.write("\n")
         self._saveDataset()
 
