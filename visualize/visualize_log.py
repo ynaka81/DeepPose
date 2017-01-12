@@ -49,7 +49,7 @@ class VisualizeLog(object):
         plt.yscale("log")
         plt.legend()
         plt.title("loss function value per epoch")
-        plt.xlabel("epoch")
+        plt.xlabel("iteration")
         plt.ylabel("loss")
         plt.show()
 
