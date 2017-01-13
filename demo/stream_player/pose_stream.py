@@ -12,11 +12,12 @@ from datasets.dataset import Dataset
 class PoseStream(QtOpenGL.QGLWidget):
     # define const values
     CHAIN_BODY = ((Dataset.JOINTS.index("neck"), Dataset.JOINTS.index("thorax")),
+                  (Dataset.JOINTS.index("neck"), Dataset.JOINTS.index("pelvis")),
                   (Dataset.JOINTS.index("thorax"), Dataset.JOINTS.index("pelvis")),
-                  (Dataset.JOINTS.index("thorax"), Dataset.JOINTS.index("l_shoulder")),
+                  (Dataset.JOINTS.index("neck"), Dataset.JOINTS.index("l_shoulder")),
                   (Dataset.JOINTS.index("l_shoulder"), Dataset.JOINTS.index("l_elbow")),
                   (Dataset.JOINTS.index("l_elbow"), Dataset.JOINTS.index("l_wrist")),
-                  (Dataset.JOINTS.index("thorax"), Dataset.JOINTS.index("r_shoulder")),
+                  (Dataset.JOINTS.index("neck"), Dataset.JOINTS.index("r_shoulder")),
                   (Dataset.JOINTS.index("r_shoulder"), Dataset.JOINTS.index("r_elbow")),
                   (Dataset.JOINTS.index("r_elbow"), Dataset.JOINTS.index("r_wrist")),
                   (Dataset.JOINTS.index("pelvis"), Dataset.JOINTS.index("l_knee")),
@@ -24,6 +25,7 @@ class PoseStream(QtOpenGL.QGLWidget):
                   (Dataset.JOINTS.index("pelvis"), Dataset.JOINTS.index("r_knee")),
                   (Dataset.JOINTS.index("r_knee"), Dataset.JOINTS.index("r_ankle")))
     CHAIN_HEAD = (Dataset.JOINTS.index("head"), Dataset.JOINTS.index("neck"))
+    ROOT = Dataset.JOINTS.index("pelvis")
     HEAD, BODY = 0, 1
     ## constructor
     # @param parent The parent widget
@@ -37,6 +39,8 @@ class PoseStream(QtOpenGL.QGLWidget):
         self._rot = np.zeros(3)
         ## last mouse click position
         self._last = None
+        ## root position (pelvis of the first frame)
+        self._root = np.matrix(np.zeros([3, 1]))
         # setup UI
         self.initUI()
     ## setup UI component
@@ -63,7 +67,7 @@ class PoseStream(QtOpenGL.QGLWidget):
         GL.glViewport((w - side)/2, (h - side)/2, side, side)
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glLoadIdentity()
-        GL.glFrustum(-0.45, -0.05, 0.05, -0.35, 1, 10)
+        GL.glFrustum(-0.2, 0.2, 0.2, -0.2, 1, 10)
         GL.glMatrixMode(GL.GL_MODELVIEW)
     ## draw sphere(head) or cylinder(body) between two points
     # @param self The object pointer
@@ -74,10 +78,10 @@ class PoseStream(QtOpenGL.QGLWidget):
         d = x2 - x1
         n = np.linalg.norm(d)
         GL.glPushMatrix()
-        GL.glTranslatef(x1[0, 0], x1[1, 0], -x1[2, 0])
+        GL.glTranslatef(x1[0, 0], x1[1, 0], x1[2, 0])
         # ignore when the vector d is nearly +-e_z
         if np.abs(d[2, 0]/n) < 1 - 1.e-5:
-            rad = np.arccos(-d[2, 0]/n)
+            rad = np.arccos(d[2, 0]/n)
             GL.glRotatef(np.rad2deg(rad), -d[1, 0], d[0, 0], 0)
         if bone_type == self.HEAD:
             GL.glTranslatef(0, 0, n/3)
@@ -100,6 +104,7 @@ class PoseStream(QtOpenGL.QGLWidget):
         GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
         GL.glLoadIdentity()
         # camera translation
+        GL.glTranslated(0, 0, -4)
         GL.glRotated(self._rot[0], 1, 0, 0)
         GL.glRotated(self._rot[1], 0, 1, 0)
         GL.glRotated(self._rot[2], 0, 0, 1)
@@ -120,7 +125,7 @@ class PoseStream(QtOpenGL.QGLWidget):
             self._setColor((1, 0, 0))
             for x in pose:
                 GL.glPushMatrix()
-                GL.glTranslatef(x[0, 0], x[1, 0], -x[2, 0])
+                GL.glTranslatef(x[0, 0], x[1, 0], x[2, 0])
                 GLUT.glutSolidSphere(2.e-2, 32, 32)
                 GL.glPopMatrix()
     ## mouse press event handler
@@ -137,7 +142,7 @@ class PoseStream(QtOpenGL.QGLWidget):
             dy = event.y() - self._last.y()
             if event.buttons() & QtCore.Qt.LeftButton:
                 self._rot[0] += dy
-                self._rot[1] += dx
+                self._rot[1] -= dx
         self._last = event.pos()
         self.updateGL()
     ## update 3D pose stream
@@ -145,6 +150,13 @@ class PoseStream(QtOpenGL.QGLWidget):
     # @param frame The current frame
     # @param pose The 3D pose of the current frame
     def updateStream(self, frame, pose):
+        # regard the pelvis position of the first frame as the {0}
+        if frame == 0:
+            self._root = pose[self.ROOT].copy()
+        # calculate relative position
+        for x in pose:
+            x -= self._root
+        # append poses
         if frame == 0:
             self._pose = [pose]
             self.updateFrame(0)
