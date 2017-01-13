@@ -21,7 +21,9 @@ class StreamGenerator(QtCore.QThread):
         self._loader = None
         ## pose estimator
         self._estimator = Deep3dPose("models/alex_net.py", 14)
-        self._estimator.init("local_model/AlexNet/epoch-10.model")
+        self._estimator.init("local_model/AlexNet/epoch-2000.model")
+        ## crop mean image
+        self._mean = np.load("data/mean.npy")[:, 14:14 + 227, 14:14 + 227]
         ## the flag that controls the thread
         self._stopped = False
         ## mutex lock object
@@ -43,7 +45,7 @@ class StreamGenerator(QtCore.QThread):
         for frame, image in enumerate(self._loader):
             if self._stopped:
                 return
-            input_image = (image.transpose(2, 0, 1)/255).astype(np.float32)
+            input_image = ((image.transpose(2, 0, 1) - self._mean)/255).astype(np.float32)
             pose = self._estimator(input_image)
             self.updated.emit(Stream(frame, image, pose))
         self.stop()
