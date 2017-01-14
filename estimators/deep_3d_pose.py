@@ -17,6 +17,7 @@ class Deep3dPose(object):
         _model = getattr(_model, class_name)
         ## model class
         self.model = _model(Nj)
+        self.model.train = False
         ## number of joints
         self.__Nj = Nj
     ## initialize model with given file

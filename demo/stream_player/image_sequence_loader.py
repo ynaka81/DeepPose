@@ -31,7 +31,7 @@ class ImageSequenceLoader(StreamLoader):
             try:
                 image = np.asarray(f, dtype=np.uint8)
                 if image.shape != (227, 227, 3):
-                    raise ValueError("The image size ({0}) should be (227, 227, 3).".format(image.shape))
+                    raise ValueError("The image size {0} should be (227, 227, 3).".format(image.shape))
             finally:
                 # cope with pillow < 3.0
                 if hasattr(f, "close"):
